@@ -5,12 +5,11 @@ from konira.util   import name_convertion
 from konira.runner import Runner
 
 
-class KoniraException(Exception): pass
-
 def pytest_collect_file(path, parent):
     if path.basename.startswith("case_"):
         return KoniraFile(path, parent)
             
+
 class KoniraFile(pytest.File):
     def collect(self):
         konira_runner = Runner([self.fspath], {})
@@ -21,10 +20,14 @@ class KoniraFile(pytest.File):
             yield KoniraItem(name, self, case)
 
 
+
 class KoniraItem(pytest.Item):
+
+
     def __init__(self, name, parent, spec):
         super(KoniraItem, self).__init__(name, parent)
         self.spec = spec
+
     
     def runtest(self):
         # Initialize the test class
@@ -75,8 +78,10 @@ class KoniraItem(pytest.Item):
                 "   %r" % excinfo.value.args
             ])
 
+
     def reportinfo(self):
         return self.fspath, 0, "konira case: %s" % self.name
+
 
     def methods(self, suite):
         return self._collect_methods(suite)
