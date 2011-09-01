@@ -16,48 +16,28 @@ class KoniraFile(pytest.File):
         classes = konira_runner.classes(self.fspath.strpath)
 
         for case in classes:
-            name = name_convertion(case.__name__)
-            yield KoniraItem(name, self, case)
 
+            # Initialize the test class
+            suite = case()
 
+            # check test environment setup
+            environ = TestEnviron(suite)
 
-class KoniraItem(pytest.Item):
+            methods = self.methods(suite)
+            if not methods: return
 
+            # Are we skipping?
+            if self.safe_skip_call(environ.set_skip_if):
+                return
 
-    def __init__(self, name, parent, spec):
-        super(KoniraItem, self).__init__(name, parent)
-        self.spec = spec
+            # Set before all if any
+            environ.set_before_all()
 
-    
-    def runtest(self):
-        # Initialize the test class
-        suite = self.spec()
+            for test in methods:
+                yield KoniraItem(str(test), self, suite, test)
 
-        # check test environment setup
-        environ = TestEnviron(suite)
-
-        methods = self.methods(suite)
-        if not methods: return
-
-        # Are we skipping?
-        if self.safe_skip_call(environ.set_skip_if):
-            return
-
-        # Set before all if any
-        environ.set_before_all()
-
-        for test in methods:
-
-            # Set before each if any
-            environ.set_before_each()
-
-            getattr(suite, test)()
-                
-            # Set after each if any
-            environ.set_after_each()
-
-        # Set after all if any
-        environ.set_after_all()
+            # Set after all if any
+            environ.set_after_all()
 
 
     def safe_skip_call(self, env_call):
@@ -92,3 +72,37 @@ class KoniraItem(pytest.Item):
         return [i for i in dir(module) if not i.startswith('_') and i not in invalid and i.startswith('it_')] 
 
 
+class KoniraItem(pytest.Item):
+
+
+    def __init__(self, name, parent, case, spec):
+        super(KoniraItem, self).__init__(name, parent)
+        self.spec = spec
+        self.case = case
+
+    
+    def runtest(self):
+        # Initialize the test class
+        #suite = self.spec()
+
+        # check test environment setup
+        environ = TestEnviron(self.case)
+
+        #methods = self.methods(suite)
+        #if not methods: return
+
+        # Set before all if any
+        #environ.set_before_all()
+
+        #for test in methods:
+
+        # Set before each if any
+        environ.set_before_each()
+
+        getattr(self.case, self.spec)()
+            
+        # Set after each if any
+        environ.set_after_each()
+
+        # Set after all if any
+        #environ.set_after_all()
