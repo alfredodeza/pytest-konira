@@ -1,16 +1,16 @@
 from setuptools import setup
 
 setup(
-    name         = 'pytest-konira',
-    description  = 'Run Konira DSL tests',
-    author       = 'Alfredo Deza',
-    author_email = 'alfredodeza [at] gmail.com',
-    version      = '0.1',
-    py_modules   = ['pytest_konira'],
-    entry_points = {
+    name             = 'pytest-konira',
+    description      = 'Run Konira DSL tests',
+    author           = 'Alfredo Deza',
+    author_email     = 'alfredodeza [at] gmail.com',
+    version          = '0.1',
+    py_modules       = ['pytest_konira'],
+    entry_points     = {
         'pytest11': [
-            'pytest_konira = pytest_konira',
+            'konira = pytest_konira',
         ]
     },
-    install_requires = ['konira==0.1.0'],
+    install_requires = ['konira>=0.1.0', 'pytest>=2.0'],
 )
