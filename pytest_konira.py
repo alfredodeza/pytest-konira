@@ -6,9 +6,9 @@ from konira.runner import Runner
 
 
 def pytest_collect_file(path, parent):
-    if path.basename.startswith("case_"):
+    if path.basename.lower().startswith("case_"):
         return KoniraFile(path, parent)
-            
+
 
 class KoniraFile(pytest.File):
     def collect(self):
@@ -50,26 +50,14 @@ class KoniraFile(pytest.File):
             return False
 
 
-    def repr_failure(self, excinfo):
-        """ called when self.runtest() raises an exception. """
-        if isinstance(excinfo.value, BaseException):
-            return "\n".join([
-                "spec failed",
-                "   %r" % excinfo.value.args
-            ])
-
-
-    def reportinfo(self):
-        return self.fspath, 0, "konira case: %s" % self.name
-
-
     def methods(self, suite):
         return self._collect_methods(suite)
 
 
     def _collect_methods(self, module):
         invalid = ['_before_each', '_before_all', '_after_each', '_after_all']
-        return [i for i in dir(module) if not i.startswith('_') and i not in invalid and i.startswith('it_')] 
+        return [i for i in dir(module) if not i.startswith('_') and i not in invalid and i.startswith('it_')]
+
 
 
 class KoniraItem(pytest.Item):
@@ -80,29 +68,21 @@ class KoniraItem(pytest.Item):
         self.spec = spec
         self.case = case
 
-    
-    def runtest(self):
-        # Initialize the test class
-        #suite = self.spec()
 
+    def runtest(self):
         # check test environment setup
         environ = TestEnviron(self.case)
-
-        #methods = self.methods(suite)
-        #if not methods: return
-
-        # Set before all if any
-        #environ.set_before_all()
-
-        #for test in methods:
 
         # Set before each if any
         environ.set_before_each()
 
         getattr(self.case, self.spec)()
-            
+
         # Set after each if any
         environ.set_after_each()
 
-        # Set after all if any
-        #environ.set_after_all()
+    def reportinfo(self):
+        describe = "describe %s" % name_convertion(self.case.__class__.__name__)
+        it = name_convertion(self.name, capitalize=False)
+        describe_and_it = "%s ==>> %s" % (describe, it)
+        return self.fspath, 0, describe_and_it
