@@ -8,7 +8,7 @@ from konira.runner import Runner
 
 def pytest_addoption(parser):
     """Add option to collect Konira test cases"""
-    group = parser.getgroup('Konira DSL test cases options')
+    group = parser.getgroup('Konira DSL test cases')
     group.addoption('--konira', action='store_true', help='Collects Konira test cases')
 
 
