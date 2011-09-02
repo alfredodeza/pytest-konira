@@ -5,9 +5,18 @@ from konira.util   import name_convertion
 from konira.runner import Runner
 
 
+
+def pytest_addoption(parser):
+    """Add option to collect Konira test cases"""
+    group = parser.getgroup('Konira DSL test cases options')
+    group.addoption('--konira', action='store_true', help='Collects Konira test cases')
+
+
+
 def pytest_collect_file(path, parent):
-    if path.basename.lower().startswith("case_"):
+    if parent.config.option.konira and path.basename.lower().startswith("case_"):
         return KoniraFile(path, parent)
+
 
 
 class KoniraFile(pytest.File):
