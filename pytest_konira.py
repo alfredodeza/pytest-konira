@@ -1,7 +1,7 @@
 import pytest
 from konira.runner import TestEnviron, get_methods, safe_skip_call
-from konira.util   import name_convertion, get_classes, get_let_attrs, set_let_attrs
-from konira.runner import Runner
+from konira.util   import name_convertion, get_let_attrs, set_let_attrs
+from konira.runner import get_classes
 
 
 
