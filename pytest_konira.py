@@ -1,7 +1,6 @@
 import pytest
-from konira.exc    import KoniraNoSkip
-from konira.runner import TestEnviron
-from konira.util   import name_convertion
+from konira.runner import TestEnviron, get_methods, safe_skip_call
+from konira.util   import name_convertion, get_classes, get_let_attrs, set_let_attrs
 from konira.runner import Runner
 
 
@@ -21,8 +20,7 @@ def pytest_collect_file(path, parent):
 
 class KoniraFile(pytest.File):
     def collect(self):
-        konira_runner = Runner([self.fspath], {})
-        classes = konira_runner.classes(self.fspath.strpath)
+        classes = get_classes(self.fspath.strpath, None)
 
         for case in classes:
 
@@ -32,50 +30,33 @@ class KoniraFile(pytest.File):
             # check test environment setup
             environ = TestEnviron(suite)
 
-            methods = self.methods(suite)
+            methods = get_methods(suite, None)
             if not methods: return
 
             # Are we skipping?
-            if self.safe_skip_call(environ.set_skip_if):
+            if safe_skip_call(environ.set_skip_if):
                 return
+
+            let_attrs = get_let_attrs(suite)
 
             # Set before all if any
             environ.set_before_all()
 
             for test in methods:
-                yield KoniraItem(str(test), self, suite, test)
+                yield KoniraItem(str(test), self, suite, test, let_attrs)
 
             # Set after all if any
             environ.set_after_all()
-
-
-    def safe_skip_call(self, env_call):
-        try:
-            env_call()
-            return True
-        except KoniraNoSkip:
-            return False
-        except Exception:
-            return False
-
-
-    def methods(self, suite):
-        return self._collect_methods(suite)
-
-
-    def _collect_methods(self, module):
-        invalid = ['_before_each', '_before_all', '_after_each', '_after_all']
-        return [i for i in dir(module) if not i.startswith('_') and i not in invalid and i.startswith('it_')]
 
 
 
 class KoniraItem(pytest.Item):
 
 
-    def __init__(self, name, parent, case, spec):
+    def __init__(self, name, parent, case, spec, let_attrs):
         super(KoniraItem, self).__init__(name, parent)
         self.spec = spec
-        self.case = case
+        self.case = set_let_attrs(case, let_attrs)
 
 
     def runtest(self):
