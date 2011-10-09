@@ -56,6 +56,7 @@ class KoniraItem(pytest.Item):
     def __init__(self, name, parent, case, spec, let_attrs):
         super(KoniraItem, self).__init__(name, parent)
         self.spec = spec
+        self.let_attrs = let_attrs
         self.case = set_let_attrs(case, let_attrs)
 
 
@@ -66,7 +67,8 @@ class KoniraItem(pytest.Item):
         # Set before each if any
         environ.set_before_each()
 
-        getattr(self.case, self.spec)()
+        case = set_let_attrs(self.case, self.let_attrs)
+        getattr(case, self.spec)()
 
         # Set after each if any
         environ.set_after_each()
